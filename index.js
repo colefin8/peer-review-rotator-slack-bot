@@ -1,6 +1,9 @@
+//bolt is slack's sdk
 const { App, LogLevel } = require("@slack/bolt");
+//dotenv is a library that places env variables onto the process object
 require('dotenv').config()
 const { BOT_TOKEN, SECRET, CHANNEL } = process.env
+//seniors and juniors are arrays of names that should be paired up by index, 
 const seniors = require('./seniors')
 const juniors = require('./juniors')
 
@@ -12,6 +15,7 @@ const app = new App({
 const doIt = async () => {
     let members = await getUsers()
     let names = await getName(members)
+    // this code is specific to the juniors and seniors I listed, if you just wanted to do individual employees you can just remove this reduce method
     names = names.reduce((a, e, i) => {
         if (seniors.includes(e)) {
             if (i === 0) {
@@ -23,7 +27,6 @@ const doIt = async () => {
         return a
     }, [])
     names = shuffle(names)
-    console.log(await names)
     printRotation(names)
 }
 
@@ -55,15 +58,18 @@ const getUsers = async () => {
 
 const getName = async (members) => {
     let names = []
+    //# get name of corresponding userid
     for (let i = 0; i < members.length; i++) {
         const name = await app.client.users.info({
             token: BOT_TOKEN,
             user: members[i]
         })
+        //# ignore user if it's a bot
         if (!name.user.is_bot) {
             names.push(name.user.real_name)
         }
     }
+    //? not sure i need this await?
     return await names
 }
 
