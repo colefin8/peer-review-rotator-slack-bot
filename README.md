@@ -22,3 +22,5 @@ SECRET get from cole
 CHANNEL = channel id
 
 EXCLUDE = user ids to exclude separated by spaces
+
+have Cole install this bot on your channel
