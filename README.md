@@ -6,10 +6,9 @@ pairs for peer review.
 for users A,B,C,D,E it might output
 
 ```
-Peer Reviewer => Peer Reviewee
-A => E
-E => B
-B => C
-c => D
-D => A
+A assigns to E
+E assigns to B
+B assigns to C
+c assigns to D
+D assigns to A
 ```
