@@ -16,6 +16,9 @@ D assigns to A
 clone this repo down, run `npm i`, then add an env with the following values
 
 BOT_TOKEN get from cole
+
 SECRET get from cole
+
 CHANNEL = channel id
+
 EXCLUDE = user ids to exclude separated by spaces
