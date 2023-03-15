@@ -8,6 +8,7 @@ const { BOT_TOKEN, SECRET, CHANNEL, EXCLUDE } = process.env
 // U019045NWD6 Jeremy Jensen
 // U01PY7LFSHK Cole Finlayson
 // U02LKHB0HA7 Jarrod Ribble
+// U0271KE1LHL Cameron Zollinger
 
 const excludeIds = EXCLUDE?.split(' ') ?? []
 
