@@ -2,10 +2,14 @@
 const { App, LogLevel } = require("@slack/bolt");
 //dotenv is a library that places env variables onto the process object
 require('dotenv').config()
-const { BOT_TOKEN, SECRET, CHANNEL } = process.env
-//seniors and juniors are arrays of names that should be paired up by index, 
-const seniors = require('./seniors')
-const juniors = require('./juniors')
+const { BOT_TOKEN, SECRET, CHANNEL, EXCLUDE } = process.env
+
+// useful user ids
+// U019045NWD6 Jeremy Jensen
+// U01PY7LFSHK Cole Finlayson
+// U02LKHB0HA7 Jarrod Ribble
+
+const excludeIds = EXCLUDE?.split(' ') ?? []
 
 const app = new App({
     token: BOT_TOKEN,
@@ -13,19 +17,21 @@ const app = new App({
     LogLevel: LogLevel.DEBUG
 })
 const doIt = async () => {
+    //get member ids from channel
     let members = await getUsers()
+    //get names from member ids
     let names = await getName(members)
     // this code is specific to the juniors and seniors I listed, if you just wanted to do individual employees you can just remove this reduce method
-    names = names.reduce((a, e, i) => {
-        if (seniors.includes(e)) {
-            if (i === 0) {
-                a.push(e)
-            } else {
-                a.push(e + ', ' + juniors[i])
-            }
-        }
-        return a
-    }, [])
+    // names = names.reduce((a, e, i) => {
+    //     if (seniors.includes(e)) {
+    //         if(juniors.length > i) {
+    //             a.push(e + ', ' + juniors[i])
+    //         } else {
+    //             a.push(e)
+    //         }
+    //     }
+    //     return a
+    // }, [])
     names = shuffle(names)
     printRotation(names)
 }
@@ -64,9 +70,9 @@ const getName = async (members) => {
             token: BOT_TOKEN,
             user: members[i]
         })
-        //# ignore user if it's a bot
-        if (!name.user.is_bot) {
-            names.push(name.user.real_name)
+        //# ignore user if it's a bot or if it's in the list of excluded users in the .env
+        if (!name.user.is_bot && !excludeIds.includes(name.user.id)) {
+            names.push(`<@${name.user.id}>`)
         }
     }
     //? not sure i need this await?
@@ -74,24 +80,14 @@ const getName = async (members) => {
 }
 
 const printRotation = async (names) => {
-    let text = [{
-        type: 'header',
-        text:
-        {
-            type: 'mrkdwn',
-            text: 'Peer Reviewer :arrow_right: Peer Reviewee'
-        }
-    }, {
-        type: 'divider'
-    }
-    ]
+    let text = []
     for (let i = 0; i < names.length; i++) {
         if (i < names.length - 1) {
             text.push({
                 type: 'section',
                 fields: [{
                     type: 'mrkdwn',
-                    text: `${names[i]} :arrow_right: ${names[i + 1]}`
+                    text: `${names[i]} assigns to ${names[i + 1]}`
                 }]
             })
         } else {
@@ -99,17 +95,20 @@ const printRotation = async (names) => {
                 type: 'section',
                 fields: [{
                     type: 'mrkdwn',
-                    text: `${names[i]} :arrow_right: ${names[0]}`
+                    text: `${names[i]} assigns to ${names[0]}`
                 }]
             })
         }
     }
-    // await app.client.chat.postMessage({
-    //     channel: CHANNEL,
-    //     token: BOT_TOKEN,
-    //     text: 'Peer Review Rotation',
-    //     blocks: text
-    // })
+    // uncomment below to print randomized list to console
+    // text.forEach(e => console.log(e.fields))
+    // comment out below to avoid spamming chat when testing
+    await app.client.chat.postMessage({
+        channel: CHANNEL,
+        token: BOT_TOKEN,
+        text: 'Peer Review Rotation',
+        blocks: text
+    })
 }
 
 try {
