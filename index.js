@@ -2,6 +2,7 @@
 const { App, LogLevel } = require("@slack/bolt");
 //dotenv is a library that places env variables onto the process object
 require('dotenv').config()
+//you need your own .env file with the following variables
 const { BOT_TOKEN, SECRET, CHANNEL, EXCLUDE } = process.env
 
 // useful user ids
@@ -10,34 +11,30 @@ const { BOT_TOKEN, SECRET, CHANNEL, EXCLUDE } = process.env
 // U02LKHB0HA7 Jarrod Ribble
 // U0271KE1LHL Cameron Zollinger
 
+// in the exclude env variable, user ids are separated by a space
 const excludeIds = EXCLUDE?.split(' ') ?? []
 
+//create a new app with the bot token and signing secret
 const app = new App({
     token: BOT_TOKEN,
     signingSecret: SECRET,
     LogLevel: LogLevel.DEBUG
 })
+
+//start the app
 const doIt = async () => {
+    //delete messages older than 30 days
+    deleteBotMessages(await getChannelMessages())
     //get member ids from channel
     let members = await getUsers()
     //get names from member ids
     let names = await getName(members)
-    // this code is specific to the juniors and seniors I listed, if you just wanted to do individual employees you can just remove this reduce method
-    // names = names.reduce((a, e, i) => {
-    //     if (seniors.includes(e)) {
-    //         if(juniors.length > i) {
-    //             a.push(e + ', ' + juniors[i])
-    //         } else {
-    //             a.push(e)
-    //         }
-    //     }
-    //     return a
-    // }, [])
     names = shuffle(names)
     printRotation(names)
 }
 
-function shuffle(array) {
+
+const shuffle = (array) => {
     let currentIndex = array.length, randomIndex;
 
     // while there remain elements to shuffle
@@ -110,6 +107,30 @@ const printRotation = async (names) => {
         text: 'Peer Review Rotation',
         blocks: text
     })
+}
+
+const getChannelMessages = async () => {
+    const date = new Date()
+    date.setDate(date.getDate() - 30)
+    const monthAgoDate = Math.floor(date / 1000).toFixed(0)
+    const history = await app.client.conversations.history({
+        channel: CHANNEL,
+        token: BOT_TOKEN,
+        oldest: monthAgoDate
+    })
+    return history.messages
+}
+
+const deleteBotMessages = async (messages) => {
+    for (message of messages) {
+        if (message.user === 'U02URUE9BMZ') {
+            await app.client.chat.delete({
+                channel: CHANNEL,
+                token: BOT_TOKEN,
+                ts: message.ts
+            })
+        }
+    }
 }
 
 try {
