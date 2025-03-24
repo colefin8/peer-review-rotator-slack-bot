@@ -12,6 +12,14 @@ if (-not (Get-Command "node" -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+# Run npm install to install dependencies
+try {
+    npm install $scriptDir
+} catch {
+    Write-Error "Failed to install dependencies. Error: $_"
+    exit 1
+}
+
 # Run the index.js file with Node.js
 try {
     node $scriptPath

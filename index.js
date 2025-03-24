@@ -23,8 +23,6 @@ const app = new App({
 
 //start the app
 const doIt = async () => {
-    //delete messages older than 30 days
-    deleteBotMessages(await getChannelMessages())
     //get member ids from channel
     let members = await getUsers()
     //get names from member ids
@@ -119,20 +117,6 @@ const getChannelMessages = async () => {
         oldest: monthAgoDate
     })
     return history.messages
-}
-
-const deleteBotMessages = async (messages) => {
-    for (message of messages) {
-        console.log(message)
-        console.log(message.user === 'U02URUE9BMZ')
-        if (message.user === 'U02URUE9BMZ') {
-            await app.client.chat.delete({
-                channel: CHANNEL,
-                token: BOT_TOKEN,
-                ts: message.ts
-            })
-        }
-    }
 }
 
 try {
