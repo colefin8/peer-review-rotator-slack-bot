@@ -123,6 +123,8 @@ const getChannelMessages = async () => {
 
 const deleteBotMessages = async (messages) => {
     for (message of messages) {
+        console.log(message)
+        console.log(message.user === 'U02URUE9BMZ')
         if (message.user === 'U02URUE9BMZ') {
             await app.client.chat.delete({
                 channel: CHANNEL,
