@@ -12,7 +12,17 @@ const { BOT_TOKEN, SECRET, CHANNEL, EXCLUDE } = process.env
 // U0271KE1LHL Cameron Zollinger
 
 // in the exclude env variable, user ids are separated by a space
-const excludeIds = EXCLUDE?.split(' ') ?? []
+let rawExcludeIds = EXCLUDE?.split(',') ?? []
+const excludeIds = {};
+if (rawExcludeIds.length > 0) {
+    rawExcludeIds.forEach(e => {
+        let [channel, ids] = e.split(':')
+        ids = ids.split(' ')
+        excludeIds[channel] = ids
+    })
+}
+
+let channels = CHANNEL?.split(' ')
 
 //create a new app with the bot token and signing secret
 const app = new App({
@@ -23,12 +33,14 @@ const app = new App({
 
 //start the app
 const doIt = async () => {
-    //get member ids from channel
-    let members = await getUsers()
-    //get names from member ids
-    let names = await getName(members)
-    names = shuffle(names)
-    printRotation(names)
+    for (channel of channels) {
+        //get member ids from channel
+        let members = await getUsers(channel)
+        //get names from member ids
+        let names = await getName(members, channel)
+        names = shuffle(names)
+        printRotation(names, channel)
+    }
 }
 
 
@@ -50,15 +62,15 @@ const shuffle = (array) => {
     return array;
 }
 
-const getUsers = async () => {
+const getUsers = async (channel) => {
     const { members } = await app.client.conversations.members({
-        channel: CHANNEL,
+        channel,
         token: BOT_TOKEN
     })
     return members
 }
 
-const getName = async (members) => {
+const getName = async (members, channel) => {
     let names = []
     //# get name of corresponding userid
     for (let i = 0; i < members.length; i++) {
@@ -67,7 +79,7 @@ const getName = async (members) => {
             user: members[i]
         })
         //# ignore user if it's a bot or if it's in the list of excluded users in the .env
-        if (!name.user.is_bot && !excludeIds.includes(name.user.id)) {
+        if (!name.user.is_bot && !excludeIds[channel]?.includes(name.user.id)) {
             names.push(`<@${name.user.id}>`)
         }
     }
@@ -75,7 +87,7 @@ const getName = async (members) => {
     return await names
 }
 
-const printRotation = async (names) => {
+const printRotation = async (names, channel) => {
     let text = []
     for (let i = 0; i < names.length; i++) {
         if (i < names.length - 1) {
@@ -100,23 +112,11 @@ const printRotation = async (names) => {
     // text.forEach(e => console.log(e.fields))
     // comment out below to avoid spamming chat when testing
     await app.client.chat.postMessage({
-        channel: CHANNEL,
+        channel,
         token: BOT_TOKEN,
         text: 'Peer Review Rotation',
         blocks: text
     })
-}
-
-const getChannelMessages = async () => {
-    const date = new Date()
-    date.setDate(date.getDate() - 30)
-    const monthAgoDate = Math.floor(date / 1000).toFixed(0)
-    const history = await app.client.conversations.history({
-        channel: CHANNEL,
-        token: BOT_TOKEN,
-        oldest: monthAgoDate
-    })
-    return history.messages
 }
 
 try {
@@ -124,4 +124,5 @@ try {
 }
 catch (err) {
     console.error(err)
+    console.error(channels, excludeIds)
 }
