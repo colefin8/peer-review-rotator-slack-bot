@@ -19,8 +19,8 @@ BOT_TOKEN get from cole
 
 SECRET get from cole
 
-CHANNEL = channel id
+CHANNEL = channel id, you can include multiple ids separated by spaces and it will print to all listed channels
 
-EXCLUDE = user ids to exclude separated by spaces
+EXCLUDE = user ids to exclude separated by spaces, if you have multiple channels separate lists of users ids to exclude with ":"
 
 have Cole install this bot on your channel
